@@ -1,34 +1,17 @@
-import os
+import streamlit as st
+from streamlit_chat import message
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = 'credentials.json'
+message('Welcome to Streamlit-Chat')
 
-def detect_intent_texts(project_id, session_id, text, language_code):
-    """Returns the result of detect intent with texts as inputs.
+if 'message_history' not in st.session_state:
+    st.session_state.message_history = []
 
-    Using the same `session_id` between requests allows continuation
-    of the conversation."""
-    from google.cloud import dialogflow
+for message_ in st.session_state.message_history:
+    message(message_,is_user=True) # display all the previous message
 
-    session_client = dialogflow.SessionsClient()
+placeholder = st.empty() # placeholder for latest message
+input_ = st.text_input('you')
+st.session_state.message_history.append(input_)
 
-    session = session_client.session_path(project_id, session_id)
-    print("Session path: {}\n".format(session))
-
-    text_input = dialogflow.TextInput(text=text, language_code=language_code)
-
-    query_input = dialogflow.QueryInput(text=text_input)
-
-    response = session_client.detect_intent(
-        request={"session": session, "query_input": query_input}
-    )
-
-    print("Query text: {}".format(response.query_result.query_text))
-    print(
-        "Detected intent: {} (confidence: {})\n".format(
-            response.query_result.intent.display_name,
-            response.query_result.intent_detection_confidence,
-        )
-    )
-    print("Fulfillment text: {}\n".format(response.query_result.fulfillment_text))
-
-detect_intent_texts('homecb-qrl9', '1234', 'alo', 'vi-VN')
+with placeholder.container():
+    message( st.session_state.message_history[-1], is_user=True) # display the latest message
