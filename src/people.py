@@ -39,52 +39,96 @@ def create_table():
         st.dataframe(st.session_state.df, use_container_width = True)
 
 def add_df():
-    name = st.text_input('Tên:', key = 'n1')
-    team = st.text_input('Nhóm:', key = 't1')
-    mail = st.text_input('Mail:', key = 'm1')
+    name = st.text_input('Tên:', key = 'n1').strip()
+    team = st.text_input('Nhóm:', key = 't1').strip()
+    mail = st.text_input('Mail:', key = 'm1').strip()
     btn = st.button('Xác nhận', key = 'b1')
-    if btn and name != None and team != None and mail != None:
-        st.session_state.df.loc[len(st.session_state.df.index) + 1] = [team, name, mail]
-        save_csv()
-        create_table()
+    if btn:
+        if name != '' and team != '' and mail != '':
+            st.session_state.df.loc[len(st.session_state.df.index) + 1] = [team, name, mail]
+            save_csv()
+            create_table()
+        else:
+            st.warning('Không được để trống các trường thông tin', icon = '⚠️')
 
 def change_df():
-    stt = st.text_input('Người thứ:', key = 's2')
-    name = st.text_input('Tên:', key = 'n2')
-    team = st.text_input('Nhóm:', key = 't2')
-    mail = st.text_input('Mail:', key = 'm2')
+    stt = st.text_input('Người thứ:', key = 's2').strip()
+    name = st.text_input('Tên:', key = 'n2').strip()
+    team = st.text_input('Nhóm:', key = 't2').strip()
+    mail = st.text_input('Mail:', key = 'm2').strip()
     btn = st.button('Xác nhận', key = 'b2')
-    if btn and stt != None and name != None and team != None and mail != None:
-        try:
-            stt = int(stt)
-            if stt < len(st.session_state.df.index) + 1:
-                st.session_state.df.loc[stt] = [team, name, mail]
-                save_csv()
-                create_table()
-        except:
-            pass
+    if btn:
+        if stt != '' and name != '' and team != '' and mail != '':
+            try:
+                stt = int(stt)
+                if stt < len(st.session_state.df.index) + 1:
+                    st.session_state.df.loc[stt] = [team, name, mail]
+                    save_csv()
+                    create_table()
+            except:
+                pass
+        else:
+            st.warning('Không được để trống các trường thông tin', icon = '⚠️')
 
 def delete_df():
-    stt = st.text_input('Người thứ:', key = 's3')
+    stt = st.text_input('Người thứ:', key = 's3').strip()
     btn = st.button('Xác nhận', key = 'b3')
-    if btn and stt != None:
-        try:
-            stt = int(stt)
-            if stt < len(st.session_state.df.index) + 1:
-                st.session_state.df = st.session_state.df.drop([stt])
-                save_csv()
-                create_table()
-        except:
-            pass
+    if btn:
+        if stt != '':
+            try:
+                stt = int(stt)
+                if stt < len(st.session_state.df.index) + 1:
+                    st.session_state.df = st.session_state.df.drop([stt])
+                    save_csv()
+                    create_table()
+            except:
+                pass
+        else:
+            st.warning('Không được để trống các trường thông tin', icon = '⚠️')
 
 def add_df_t():
-    pass
+    st.markdown(
+        '''
+        ### Tính năng này tạm thời chưa có
+        '''
+    )
 
 def change_df_t():
-    pass
+    team = st.text_input('Tên nhóm cũ:', key = 't5').strip()
+    team_n = st.text_input('Tên nhóm mới:', key = 'tt5').strip()
+    btn = st.button('Xác nhận', key = 'b5')
+    teams = st.session_state.df['teams'].unique()
+    if btn:
+        if team != '' and team_n != '':
+            if team in teams:
+                try:
+                    st.session_state.df['teams'] = st.session_state.df['teams'].replace(team, team_n)
+                    save_csv()
+                    create_table()
+                except:
+                    pass
+            else:
+                st.warning('Không tìm thấy tên nhóm trong dữ liệu', icon = '⚠️')
+        else:
+            st.warning('Không được để trống các trường thông tin', icon = '⚠️')
 
 def delete_df_t():
-    pass
+    team = st.text_input('Tên nhóm:', key = 't6').strip()
+    btn = st.button('Xác nhận', key = 'b6')
+    teams = st.session_state.df['teams'].unique()
+    if btn:
+        if team != '':
+            if team in teams:
+                try:
+                    st.session_state.df = st.session_state.df[st.session_state.df['teams'] != team]
+                    save_csv()
+                    create_table()
+                except:
+                    pass
+            else:
+                st.warning('Không tìm thấy tên nhóm trong dữ liệu', icon = '⚠️')
+        else:
+            st.warning('Không được để trống các trường thông tin', icon = '⚠️')
 
 def main():
     if check_key():

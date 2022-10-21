@@ -1,15 +1,14 @@
 import streamlit as st
-import numpy as np
-import random
 
-from src import home, cleans, people
+from src import home, cleans, people, money, supports
 
 def init():
     st.session_state.pages = {
         '🏠 Trang chủ': home.main,
         '🧹 Lịch Dọn dẹp': cleans.main,
-        '🙍 Quản lý nhân sự': people.main
-        # 2: money.main,
+        '🙍 Quản lý nhân sự': people.main,
+        '💰 Quản lý tiền bạc': money.main,
+        '🤖 Hỗ trợ': supports.main
     }
 
 def draw_style():
@@ -40,9 +39,12 @@ def main():
         st.markdown('# Menu quản lý trong nhà')
         st.image('https://media.giphy.com/media/cYxRo3zzej4vTAcd4r/giphy.gif')
         page = st.selectbox('Chọn đích đến',
-                            ('🏠 Trang chủ', '🧹 Lịch Dọn dẹp', '🙍 Quản lý nhân sự'),
+                            ('🏠 Trang chủ',
+                            '🧹 Lịch Dọn dẹp',
+                            '🙍 Quản lý nhân sự',
+                            '💰 Quản lý tiền bạc',
+                            '🤖 Hỗ trợ'),
                             key = 'choose_page')
-    st.balloons()
     load_page(page)
 
 if __name__ == '__main__':
