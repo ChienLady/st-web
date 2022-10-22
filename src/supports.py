@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
-from streamlit_chat import message
+from streamlit_chat import message as st_mess
 from google.cloud import dialogflow
 
 THIS_PATH = os.path.abspath(__file__)
@@ -32,32 +32,31 @@ def detect_intent_text(text, language_code = 'vi-VN'):
 
 def init():
     st.session_state.idx = 0
-    st.session_state.message_history = []
+    st.session_state.history = []
 
 def reset():
-    st.session_state.message_history = []
-    st.session_state.placeholder.empty()
+    st.session_state.history = []
+
+def generate_answer():
+    user_message = st.session_state.input_text
+    if user_message != '':
+        message_bot = detect_intent_text(user_message).get('result')
+    else:
+        message_bot = 'Bạn có thể hỏi lại được không?'
+
+    st.session_state.history.append({'message': user_message, 'is_user': True})
+    st.session_state.history.append({'message': message_bot, 'is_user': False})
 
 def main():
-    if 'message_history' not in st.session_state:
+    if 'history' not in st.session_state:
         init()
-    st.session_state.placeholder = st.empty()
+    st.text_input('Đặt câu hỏi', key = 'input_text', on_change = generate_answer)
 
-    text_in = st.empty()
-    input_ = text_in.text_input('Đặt câu hỏi:')
-    st.button('Đặt lại', key = 'btn_reset', on_click = reset)
+    st.button('Đặt lại bảng trả lời', key = 'btn_reset', on_click = reset)
 
-    if input_ != '':
-        st.session_state.message_history.append(input_)
-        with st.spinner(text = 'Đang xử lý ...'):
-            ans = detect_intent_text(input_).get('result')
-        
-        st.session_state.message_history.append(ans)
-        with st.session_state.placeholder.container():
-            for mess in st.session_state.message_history:
-                message(mess, key = f't{st.session_state.idx}', is_user = True if st.session_state.idx % 2 == 0 else False)
-                st.session_state.idx += 1
-    input_ = text_in.text_input('Đặt câu hỏi:')
+    for chat in st.session_state.history:
+        st_mess(**chat, key = st.session_state.idx)
+        st.session_state.idx += 1
 
 if __name__ == '__main__':
     main()

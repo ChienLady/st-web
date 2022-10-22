@@ -86,6 +86,7 @@ def main():
     if 'now' not in st.session_state:
         init()
         read_days_remain()
+
     df = read_csv()
     create_info(df)
     calen = create_calen(st.session_state.now.month, st.session_state.now.year, df)
