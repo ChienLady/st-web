@@ -8,7 +8,7 @@ THIS_PATH = os.path.abspath(__file__)
 DIR_PATH = os.path.dirname(THIS_PATH)
 DDIR_PATH = os.path.dirname(DIR_PATH)
 ASSET_PATH = os.path.join(DDIR_PATH, 'Assets')
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(ASSET_PATH, 'credentials.json')
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(ASSET_PATH, 'credentials_dialogflow.json')
 os.environ['GOOGLE_CLOUD_PROJECT'] = '935238694151'
 
 PROJECT_ID = 'homecb-qrl9'
@@ -38,14 +38,16 @@ def reset():
     st.session_state.history = []
 
 def generate_answer():
+    if len(st.session_state.history) > 6:
+        st.session_state.history = st.session_state.history[2:]
     user_message = st.session_state.input_text
     if user_message != '':
         message_bot = detect_intent_text(user_message).get('result')
     else:
         message_bot = 'Bạn có thể hỏi lại được không?'
 
-    st.session_state.history.append({'message': user_message, 'is_user': True})
-    st.session_state.history.append({'message': message_bot, 'is_user': False})
+    st.session_state.history.append({'message': user_message, 'is_user': True, 'avatar_style': 'avataaars', 'seed': st.session_state.idx})
+    st.session_state.history.append({'message': message_bot, 'is_user': False, 'avatar_style': 'bottts', 'seed': st.session_state.idx})
 
 def main():
     if 'history' not in st.session_state:

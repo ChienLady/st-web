@@ -1,17 +1,22 @@
-import streamlit as st
-from streamlit_chat import message
+import pandas as pd
+import os
 
-message('Welcome to Streamlit-Chat')
+THIS_PATH = os.path.abspath(__file__)
+DIR_PATH = os.path.dirname(THIS_PATH)
+DDIR_PATH = os.path.dirname(DIR_PATH)
+ASSET_PATH = os.path.join(DDIR_PATH, 'Assets')
 
-if 'message_history' not in st.session_state:
-    st.session_state.message_history = []
+def read_money_csv(path = os.path.join(ASSET_PATH, 'money.csv')):
+    money_df = pd.read_csv(path, sep = ',', encoding = 'utf-8')
+    money_df.index = range(1, money_df.shape[0] + 1)
+    money_df = money_df.sort_index()
+    return money_df
 
-for message_ in st.session_state.message_history:
-    message(message_,is_user=True) # display all the previous message
+df = read_money_csv('E:\st-web\Assets\money.csv')
+df_only = df[['Trần Minh Chiến', 'tiền Chiến']]
 
-placeholder = st.empty() # placeholder for latest message
-input_ = st.text_input('you')
-st.session_state.message_history.append(input_)
+df_only.loc[len(df_only.index) + 1] = [1, 1]
+df[['Trần Minh Chiến', 'tiền Chiến']] = df_only
 
-with placeholder.container():
-    message( st.session_state.message_history[-1], is_user=True) # display the latest message
+print(df_only.head())
+print(df.head())

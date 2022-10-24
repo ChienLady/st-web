@@ -26,6 +26,12 @@ def read_csv(path = os.path.join(ASSET_PATH, 'names.csv')):
     st.session_state.df.index = range(1, st.session_state.df.shape[0] + 1)
 
 def save_csv(path = os.path.join(ASSET_PATH, 'names.csv')):
+    # try:
+    #     del st.session_state['team_count']
+    #     del st.session_state['count']
+    #     del st.session_state['now']
+    # except Exception as e:
+    #     print(e)
     st.session_state.df.to_csv(path, sep = ',', encoding = 'utf-8', index = False)
 
 def create_table():

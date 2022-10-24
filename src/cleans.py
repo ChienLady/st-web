@@ -83,9 +83,8 @@ def create_info(df):
         )
 
 def main():
-    if 'now' not in st.session_state:
-        init()
-        read_days_remain()
+    init()
+    read_days_remain()
 
     df = read_csv()
     create_info(df)
