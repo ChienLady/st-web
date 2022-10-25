@@ -8,16 +8,12 @@ DDIR_PATH = os.path.dirname(DIR_PATH)
 ASSET_PATH = os.path.join(DDIR_PATH, 'Assets')
 
 def check_key():
-    temp1 = st.subheader('Tính năng hiện tại đang không sử dụng')
-    temp2 = st.subheader('Nhập đúng KEY để truy cập')
+    st.sidebar.subheader('Tính năng hiện tại đang được thay thế, bản cũ có thể nhập Key để truy cập')
     key = st.sidebar.text_input('Key', type = 'password')
     if st.sidebar.checkbox('Xác nhận'):
-        if key == os.environ.get('KEY'):
-            temp1.empty()
-            temp2.empty()
+        if key == 'shinichien':
             return True
     else:
-        st.sidebar.error('Key nhập vào chưa đúng')
         return False
 
 def read_csv(path = os.path.join(ASSET_PATH, 'names.csv')):
@@ -91,23 +87,75 @@ def add_more(name, thing, price):
     else:
         st.warning('Không được để trống các trường thông tin', icon = '⚠️')
 
+def old():
+    init()
+    names, first_names = get_names()
+    names = list(names)
+    
+    name = st.selectbox(
+        'Lựa chọn điểm xem phù hợp',
+        ('Tổng tiền', 'Chung') + tuple(names)
+    )
+    if name == 'Tổng tiền':
+        create_table_full(first_names)
+    else:
+        create_table_only(name)
+        thing = st.text_input('Mua gì:', key = f't1').strip()
+        price = st.text_input('Giá:', key = f'p1').strip()
+        st.button('Xác nhận', key = f'b1', on_click = add_more, args = (name, thing, price)) 
+
+def storage():
+    dir_path = 'https://drive.google.com/drive/folders/1UaweXDmbHwYWplKwqei-gzXxBXH63aMK?usp=sharing'
+    ls_ids = {
+        2022: [
+            {11: '1rS51rM-NWMHfaC5JRqf5QZPr4epCXqlmWkD3hnpCJCQ'},
+            {12: '1zIZ1DCgsf2LwRLBqq5cgL7My5kbwX4VyaynXbW3hBqQ'}
+        ],
+        2023: [
+            {1: '1ngXzl-5V92GvDzK3uNQzIhgYszz7-15r9xeSF4E2nIM'},
+            {2: '1-X2IeGxvmcIg0ivEQ4WC81dhrwJHkmx7_3S7H32kTvk'},
+            {3: '1-GaLXftpUtZUjfD9r_AOciriozIsz2lFrLp8cWBmXYw'},
+            {4: '13cDQ3Opjt2LncdWX-v3jATqdiNWnFc6zF_VvvdY1T8E'},
+            {5: '1OadtPDL-_D_fWXIUcMKF9Eqy2kZk2LSDlezaoGrwZsk'},
+            {6: '19T_OFKRDUMkvb5LmvsaPGUrLFfrGAunEu4dwVyzelb8'},
+            {7: '1sinG9ezzXjnt05VRAqHxzBT0sfRDsjRUgwW4Ny6mUz4'},
+            {8: '1_EuN606TnqyBZFXde8FuKtsrlx40oODxOlGRhTxnCbA'},
+            {9: '1_U3OYKTOGEvmfu_4DUoEHBH7KjhcDli-Qxby6isQbW8'},
+            {10: '1Z9mfOBTUKAlEYJQXtk6GC7nnv6eA5PzWIFfb0CmOtIE'},
+            {11: '1yVTyUcOOhDzlXiS8h9YEYQMu_5cWKQJq9aQC1AjZDSI'},
+            {12: '1zOW-bjPWvOdgUX2Edpww9eHyGUzJqHZ9U-AqgEKx4AY'}
+        ]
+    }
+    return dir_path, ls_ids
+
+def new():
+    url = 'https://docs.google.com/spreadsheets/d/{id}/edit?usp=sharing'
+    dir_path, ls_ids = storage()
+    st.header('Toàn bộ file sheet đều lưu ở đây')
+    st.write(f'Đường dẫn tới Google Drive [link]({dir_path})')
+
+    y22 = ls_ids[2022]
+    y23 = ls_ids[2023]
+
+    tab1, tab2 = st.tabs(['Năm 2022', 'Năm 2023'])
+    with tab1:
+        st.header('Năm 2022')
+        for item in y22:
+            m, id = list(item.items())[0]
+            link = url.format(id = id)
+            st.write(f'Tháng {m} [link]({link})')
+    with tab2:
+        st.header('Năm 2023')
+        for item in y23:
+            m, id = list(item.items())[0]
+            link = url.format(id = id)
+            st.write(f'Tháng {m} [link]({link})')
+
 def main():
     if check_key():
-        init()
-        names, first_names = get_names()
-        names = list(names)
-        
-        name = st.selectbox(
-            'Lựa chọn điểm xem phù hợp',
-            ('Tổng tiền', 'Chung') + tuple(names)
-        )
-        if name == 'Tổng tiền':
-            create_table_full(first_names)
-        else:
-            create_table_only(name)
-            thing = st.text_input('Mua gì:', key = f't1').strip()
-            price = st.text_input('Giá:', key = f'p1').strip()
-            btn = st.button('Xác nhận', key = f'b1', on_click = add_more, args = (name, thing, price)) 
+        old()
+    else:
+        new()
         
 if __name__ == '__main__':
     main()
