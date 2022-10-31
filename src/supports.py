@@ -3,6 +3,10 @@ import pandas as pd
 import os
 from streamlit_chat import message as st_mess
 from google.cloud import dialogflow
+from google.protobuf.json_format import MessageToJson
+import json
+from datetime import datetime
+from .money import storage
 
 THIS_PATH = os.path.abspath(__file__)
 DIR_PATH = os.path.dirname(THIS_PATH)
@@ -23,11 +27,13 @@ def detect_intent_text(text, language_code = 'vi-VN'):
     response = session_client.detect_intent(
         request = {'session': session, 'query_input': query_input}
     )
+    json_response = json.loads(MessageToJson(response._pb)).get('queryResult')
     return {
-        'query_text': response.query_result.query_text,
-        'intent': response.query_result.intent.display_name,
-        'confidence': response.query_result.intent_detection_confidence,
-        'result': response.query_result.fulfillment_text
+        'query_text': json_response.get('queryText'),
+        'parameters':json_response.get('parameters'),
+        'intent': json_response.get('intent').get('displayName'),
+        'confidence': json_response.get('intentDetectionConfidence'),
+        'result': json_response.get('fulfillmentMessages')[0]['text']['text'][0]
     }
 
 def init():
@@ -37,12 +43,38 @@ def init():
 def reset():
     st.session_state.history = []
 
+HARDCORE_INTENTS = ['get_link']
+def process_hardcore(res):
+    if res['intent'] == 'get_link':
+        time = res['parameters'].get('date-time')
+        try:
+            time = time.get('startDate')
+            time = time.split('T')[0]
+            time = datetime.strptime(time, '%Y-%m-%d')
+            month, year = time.month, time.year
+        except:
+            return 'Thời gian không hợp lệ!'
+
+        dir_path, ls_ids = storage()
+        data = ls_ids.get(str(year))
+        if data == None:
+            return 'Không tìm thấy dữ liệu!'
+        id = data.get('Tháng '+ str(month))
+        if id == None:
+            return 'Không tìm thấy dữ liệu!'
+        url = 'https://docs.google.com/spreadsheets/d/{id}/edit'.format(id = id)
+        return 'Đường dẫn tới file tiền nhà tháng {m} năm {y}: {u}.'.format(m = month, y = year, u = url)
+
 def generate_answer():
     if len(st.session_state.history) > 6:
         st.session_state.history = st.session_state.history[2:]
     user_message = st.session_state.input_text
     if user_message != '':
-        message_bot = detect_intent_text(user_message).get('result')
+        res = detect_intent_text(user_message)
+        if res['intent'] in HARDCORE_INTENTS:
+            message_bot = process_hardcore(res)
+        else:
+            message_bot = res.get('result')
     else:
         message_bot = 'Bạn có thể hỏi lại được không?'
 

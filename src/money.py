@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import os
 
 THIS_PATH = os.path.abspath(__file__)
@@ -14,6 +15,7 @@ def check_key():
         if key == 'shinichien':
             return True
     else:
+        st.sidebar.warning('Key nhập vào chưa đúng')
         return False
 
 def read_csv(path = os.path.join(ASSET_PATH, 'names.csv')):
@@ -69,7 +71,7 @@ def create_table_only(name):
 def save_csv(path = os.path.join(ASSET_PATH, 'money.csv')):
     st.session_state.money_df.to_csv(path, sep = ',', encoding = 'utf-8', index = False)
 
-def init():
+def init_old():
     read_csv()
     read_money_csv()
 
@@ -88,7 +90,7 @@ def add_more(name, thing, price):
         st.warning('Không được để trống các trường thông tin', icon = '⚠️')
 
 def old():
-    init()
+    init_old()
     names, first_names = get_names()
     names = list(names)
     
@@ -104,53 +106,101 @@ def old():
         price = st.text_input('Giá:', key = f'p1').strip()
         st.button('Xác nhận', key = f'b1', on_click = add_more, args = (name, thing, price)) 
 
+import gspread
+from gspread import Spreadsheet
+from googleapiclient.discovery import build
+from oauth2client.service_account import ServiceAccountCredentials
+import json
+
 def storage():
     dir_path = 'https://drive.google.com/drive/folders/1UaweXDmbHwYWplKwqei-gzXxBXH63aMK?usp=sharing'
     ls_ids = {
-        2022: [
-            {11: '1rS51rM-NWMHfaC5JRqf5QZPr4epCXqlmWkD3hnpCJCQ'},
-            {12: '1zIZ1DCgsf2LwRLBqq5cgL7My5kbwX4VyaynXbW3hBqQ'}
-        ],
-        2023: [
-            {1: '1ngXzl-5V92GvDzK3uNQzIhgYszz7-15r9xeSF4E2nIM'},
-            {2: '1-X2IeGxvmcIg0ivEQ4WC81dhrwJHkmx7_3S7H32kTvk'},
-            {3: '1-GaLXftpUtZUjfD9r_AOciriozIsz2lFrLp8cWBmXYw'},
-            {4: '13cDQ3Opjt2LncdWX-v3jATqdiNWnFc6zF_VvvdY1T8E'},
-            {5: '1OadtPDL-_D_fWXIUcMKF9Eqy2kZk2LSDlezaoGrwZsk'},
-            {6: '19T_OFKRDUMkvb5LmvsaPGUrLFfrGAunEu4dwVyzelb8'},
-            {7: '1sinG9ezzXjnt05VRAqHxzBT0sfRDsjRUgwW4Ny6mUz4'},
-            {8: '1_EuN606TnqyBZFXde8FuKtsrlx40oODxOlGRhTxnCbA'},
-            {9: '1_U3OYKTOGEvmfu_4DUoEHBH7KjhcDli-Qxby6isQbW8'},
-            {10: '1Z9mfOBTUKAlEYJQXtk6GC7nnv6eA5PzWIFfb0CmOtIE'},
-            {11: '1yVTyUcOOhDzlXiS8h9YEYQMu_5cWKQJq9aQC1AjZDSI'},
-            {12: '1zOW-bjPWvOdgUX2Edpww9eHyGUzJqHZ9U-AqgEKx4AY'}
-        ]
+        '2022': {
+            'Tháng 9': '1PtcvXfCidTGtbYc3RLPettgan8hJN4sdghMvfEfKzQU',
+            'Tháng 10': '1kBg_GQeAMeNY2fhhfPIE6qVdSGhsCYA61kK3YD51AZE',
+            'Tháng 11': '1rS51rM-NWMHfaC5JRqf5QZPr4epCXqlmWkD3hnpCJCQ',
+            'Tháng 12': '1zIZ1DCgsf2LwRLBqq5cgL7My5kbwX4VyaynXbW3hBqQ'
+        },
+        '2023': {
+            'Tháng 1': '1ngXzl-5V92GvDzK3uNQzIhgYszz7-15r9xeSF4E2nIM',
+            'Tháng 2': '1CjHXewF-A5iZLRbecIhY0RaxnMl4XhDaVMBM_JEHF94',
+            'Tháng 3': '1h7Fo5RHKFHk09ll8snkkCEqE_llACLj7SZ6UMs4b5YI',
+            'Tháng 4': '1cYTyv0166Xa8RGXXyp9sEV0g2HJBXZYgHU9t365LAKc',
+            'Tháng 5': '1EWEmNhP2bWARqURHeXA8OtXxNvBBUXyvCh1CnDTlkhw',
+            'Tháng 6': '1IL8wXdOyYO5Ug03FxCh1lcB7sL8AOwUy_U7SXzW6p-k',
+            'Tháng 7': '1Hc6zC0OXh4jGy_9LIyD5ky672Z8DzaiHQUQbqzrolhE',
+            'Tháng 8': '13zpRLH5kCHb4GyB4Y6vDv6LnPzZRyasFlPgq-8Mw6WA',
+            'Tháng 9': '1nt5XF7IeRyX2wT1On-3uYqNq6HMdWY4CI48VvB7p2S0',
+            'Tháng 10': '1fbu4dVTXw1d72_ZPhOlVZBCJrB0oa_WIGLbljNlRi7A',
+            'Tháng 11': '1ID7n4thzXqdiny9YreG9p8KKx4qXJiX5tl_CnuxyJX4',
+            'Tháng 12': '1TUQSdOD0bpKC8w7b-QmIT0i2YQjXQfktbWJ6x15Cna0'
+        }
     }
     return dir_path, ls_ids
 
+scope = ['https://spreadsheets.google.com/feeds',
+        'https://www.googleapis.com/auth/spreadsheets',
+        'https://www.googleapis.com/auth/drive.file',
+        'https://www.googleapis.com/auth/drive']
+
+def get_creds(scope = scope, path = os.path.join(ASSET_PATH, 'credentials_sheet.json')):
+    creds = ServiceAccountCredentials.from_json_keyfile_name(path, scope)
+    return gspread.authorize(creds)
+
+def open_google_spreadsheet(spreadsheet_id: str) -> Spreadsheet:
+    client = get_creds(scope = ['https://spreadsheets.google.com/feeds'])
+    return client.open_by_key(spreadsheet_id)
+
+def create_summary(id):
+    with st.spinner('Đang tạo link và bảng tóm tắt tháng'):
+        sheet = open_google_spreadsheet(id)
+        url = sheet.url
+        st.write(f'Đường dẫn tới file tiền nhà của tháng: [đường dẫn]({url})')
+        all_sheets = sheet.worksheets()
+        name_people = [s.title for s in all_sheets][1:]
+        human_read = ', '.join(name_people)
+        st.markdown(f'#### Số lượng người: {len(name_people)} ({human_read}).')
+        sheet1 = all_sheets[0]
+
+        # House rent, electric, water, ...
+        st.markdown('#### 1. Phí chung')
+        response = sheet1.col_values(3)[1:]
+        header = response[::2]
+        value = response[1::2]
+        df1 = pd.DataFrame([value], index = ['.'], columns = header)
+        st.dataframe(df1, use_container_width = True)
+
+        # Personal cash
+        st.markdown('#### 2. Tiền mua đồ của mọi người')
+        name = sheet1.col_values(1)[2:]
+        price = sheet1.col_values(2)[2:]
+        remain = sheet1.col_values(6)[2:]
+        data = np.array([price, remain], dtype = object).T
+        df2 = pd.DataFrame(data, index = name)
+        df2 = df2.drop(index = '')
+        df2.columns = ['Giá tiền', 'Thừa/Thiếu']
+        st.dataframe(df2, use_container_width = True)
+
+
 def new():
-    url = 'https://docs.google.com/spreadsheets/d/{id}/edit?usp=sharing'
     dir_path, ls_ids = storage()
     st.header('Toàn bộ file sheet đều lưu ở đây')
     st.write(f'Đường dẫn tới Google Drive [link]({dir_path})')
 
-    y22 = ls_ids[2022]
-    y23 = ls_ids[2023]
+    y22 = ls_ids['2022']
+    y23 = ls_ids['2023']
 
     tab1, tab2 = st.tabs(['Năm 2022', 'Năm 2023'])
     with tab1:
         st.header('Năm 2022')
-        for item in y22:
-            m, id = list(item.items())[0]
-            link = url.format(id = id)
-            st.write(f'Tháng {m} [link]({link})')
+        month = st.selectbox('Chọn tháng', tuple(y22.keys()))
+        id = y22.get(month)
+        create_summary(id)
     with tab2:
         st.header('Năm 2023')
-        for item in y23:
-            m, id = list(item.items())[0]
-            link = url.format(id = id)
-            st.write(f'Tháng {m} [link]({link})')
-
+        month = st.selectbox('Chọn tháng', tuple(y23.keys()))
+        id = y23.get(month)
+        create_summary(id)
 def main():
     if check_key():
         old()
