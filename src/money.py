@@ -181,6 +181,9 @@ def create_summary(id):
         df2.columns = ['Giá tiền', 'Thừa/Thiếu']
         st.dataframe(df2, use_container_width = True)
 
+        # Plot figures
+        st.markdown('#### 3. Biểu đồ tóm tắt')
+
 def create_plot():
     pass
 
