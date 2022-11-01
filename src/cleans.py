@@ -31,9 +31,19 @@ def read_days_remain(path = DAYS_REMAIN_PATH):
     with open(path, 'r', encoding = 'utf-8') as f:
         contents = f.read()
     team_count, days, this_months = contents.split('|')
-    if st.session_state.now.month != int(this_months):
-        write_days_remain()
     st.session_state.team_count, st.session_state.count = int(team_count), int(days)
+    if st.session_state.now.month != int(this_months):
+        df = read_csv()
+        teams = df['teams'].unique()
+        max_days = calendar.monthrange(st.session_state.now.year, int(this_months))[1]
+        for day in range(1, max_days + 1):
+            if st.session_state.count == 0:
+                st.session_state.team_count += 1
+                if st.session_state.team_count == len(teams):
+                    st.session_state.team_count = 0
+                st.session_state.count = 7
+            st.session_state.count -= 1
+        write_days_remain()
 
 def create_calen(month, year, df):
     teams = df['teams'].unique()
