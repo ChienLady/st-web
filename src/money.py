@@ -181,6 +181,8 @@ def create_summary(id):
         df2.columns = ['Giá tiền', 'Thừa/Thiếu']
         st.dataframe(df2, use_container_width = True)
 
+def create_plot():
+    pass
 
 def new():
     dir_path, ls_ids = storage()
@@ -190,7 +192,7 @@ def new():
     y22 = ls_ids['2022']
     y23 = ls_ids['2023']
 
-    tab1, tab2 = st.tabs(['Năm 2022', 'Năm 2023'])
+    tab1, tab2, tab3 = st.tabs(['Năm 2022', 'Năm 2023', 'Tổng quan'])
     with tab1:
         st.header('Năm 2022')
         month = st.selectbox('Chọn tháng', tuple(y22.keys()))
@@ -201,6 +203,8 @@ def new():
         month = st.selectbox('Chọn tháng', tuple(y23.keys()))
         id = y23.get(month)
         create_summary(id)
+    with tab3:
+        create_plot()
 def main():
     if check_key():
         old()
