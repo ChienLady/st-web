@@ -1,3 +1,4 @@
+from cProfile import label
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -111,6 +112,8 @@ from gspread import Spreadsheet
 from googleapiclient.discovery import build
 from oauth2client.service_account import ServiceAccountCredentials
 import json
+import matplotlib.pyplot as plt
+import datetime
 
 def storage():
     dir_path = 'https://drive.google.com/drive/folders/1UaweXDmbHwYWplKwqei-gzXxBXH63aMK?usp=sharing'
@@ -183,8 +186,55 @@ def create_summary(id):
 
         # Plot figures
         st.markdown('#### 3. Biểu đồ tóm tắt')
+        col1, col2 = st.columns(2, gap = 'large')
+        with col1:
+            fig, ax = plt.subplots()
+            try:
+                temp = [int(p[:-2].replace('.', '')) for p in value[:-1]]
+                ax.pie(temp, labels = header[:-1], autopct = '%1.2f%%')
+                fig.suptitle('Biểu đồ phí sinh hoạt')
+                fig.legend()
+                st.pyplot(fig)
+            except:
+                st.write('Chưa có thông tin biểu đồ phí sinh hoạt')
+        with col2:
+            fig, ax = plt.subplots()
+            try:
+                temp = [int(p[:-2].replace('.', '')) for p in df2['Giá tiền'][:-1]]
+                ax.pie(temp, labels = df2.index[:-1], autopct = '%1.2f%%')
+                fig.suptitle('Biểu đồ phí chi tiền')
+                fig.legend()
+                st.pyplot(fig)
+            except Exception as e:
+                st.write('Chưa có thông tin biểu đồ phí chi tiền')
 
-def create_plot():
+
+def create_plot(years):
+    # with st.spinner('Đang tạo bảng tóm tắt'):
+    #     fig, ax = plt.subplots()
+    #     xs = []
+    #     ys = []
+    #     y = 2022
+    #     for year in years:
+    #         months = list(year.keys())
+    #         ids = list(year.values())
+
+    #         for month, id in zip(months, ids):
+    #             xs.append(f'{month}/{y}')
+    #             print(f'{month}/{y}')
+    #             sheet = open_google_spreadsheet(id).sheet1
+    #             data = sheet.cell(29, 2).value
+    #             print(data)
+    #             price = int(data[:-2].replace('.', ''))
+    #             ys.append(price)
+    #         y += 1
+    #     ax.plot(xs, ys)
+    #     ax.set_xlabel('Thời gian')
+    #     ax.set_ylabel('Giá cả')
+
+    #     fig.suptitle(f'Biểu đồ tăng giảm giá chi tiêu')
+    #     fig.legend()
+    #     st.pyplot(fig)
     pass
 
 def new():
@@ -195,19 +245,26 @@ def new():
     y22 = ls_ids['2022']
     y23 = ls_ids['2023']
 
-    tab1, tab2, tab3 = st.tabs(['Năm 2022', 'Năm 2023', 'Tổng quan'])
+    month_now = 'Năm ' + str(datetime.datetime.now().year)
+    tabs = ['Năm 2022', 'Năm 2023', 'Tổng quan']
+    tabs.remove(month_now)
+    tabs.insert(0, month_now)
+
+    tab1, tab2, tab3 = st.tabs(tabs)
     with tab1:
         st.header('Năm 2022')
-        month = st.selectbox('Chọn tháng', tuple(y22.keys()))
+        month_now = 'Tháng ' + str(datetime.datetime.now().month)
+        month = st.selectbox('Chọn tháng', tuple(y22.keys()), index = list(y22.keys()).index(month_now))
         id = y22.get(month)
         create_summary(id)
     with tab2:
         st.header('Năm 2023')
-        month = st.selectbox('Chọn tháng', tuple(y23.keys()))
+        month_now = 'Tháng ' + str(datetime.datetime.now().month)
+        month = st.selectbox('Chọn tháng', tuple(y23.keys()), index = list(y23.keys()).index(month_now))
         id = y23.get(month)
         create_summary(id)
     with tab3:
-        create_plot()
+        create_plot([y22, y23])
 def main():
     if check_key():
         old()

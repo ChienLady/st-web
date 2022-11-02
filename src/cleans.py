@@ -91,6 +91,8 @@ def create_info(df):
             {des}
             '''
         )
+        url = 'https://calendar.google.com/calendar/u/0/embed?src=chientranminh0511@gmail.com&ctz=Asia/Ho_Chi_Minh'
+        st.write(f'Đường dẫn nhắc nhở lịch theo lịch vạn niên: [đường dẫn]({url})')
 
 def main():
     init()
